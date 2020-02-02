@@ -19,6 +19,8 @@
 package ghook
 
 import (
+	"io/ioutil"
+	"log"
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
@@ -26,5 +28,7 @@ import (
 
 // ServeGithubHookHandler Github hook
 func ServeGithubHookHandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	body, _ := ioutil.ReadAll(r.Body)
+	log.Println(string(body))
 	w.Write([]byte("OK"))
 }

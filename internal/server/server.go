@@ -29,6 +29,6 @@ import (
 // Start starts the server
 func Start() {
 	router := httprouter.New()
-	router.GET("/ghook", ghook.ServeGithubHookHandler)
+	router.POST("/ghook", ghook.ServeGithubHookHandler)
 	go log.Fatal(http.ListenAndServe(":8080", router))
 }
