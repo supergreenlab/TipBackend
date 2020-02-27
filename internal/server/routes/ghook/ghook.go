@@ -19,16 +19,33 @@
 package ghook
 
 import (
-	"io/ioutil"
-	"log"
+	"encoding/json"
 	"net/http"
 
+	"github.com/SuperGreenLab/TipServer/internal/storage"
+	"github.com/google/go-github/v29/github"
 	"github.com/julienschmidt/httprouter"
 )
 
 // ServeGithubHookHandler Github hook
 func ServeGithubHookHandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	body, _ := ioutil.ReadAll(r.Body)
-	log.Println(string(body))
+	_, err := github.ValidatePayload(r, []byte(*hookSecret))
+	if err != nil {
+		http.Error(w, err.Error(), 400)
+		return
+	}
+	gp := gitPush{}
+	if r.Body == nil {
+		http.Error(w, "Missing body", 400)
+		return
+	}
+	err = json.NewDecoder(r.Body).Decode(&gp)
+	if err != nil {
+		http.Error(w, err.Error(), 400)
+		return
+	}
+
+	storage.UpdateTreeFromRepo()
+
 	w.Write([]byte("OK"))
 }

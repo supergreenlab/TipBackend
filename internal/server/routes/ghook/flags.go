@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019  SuperGreenLab <towelie@supergreenlab.com>
+ * Copyright (C) 2020  SuperGreenLab <towelie@supergreenlab.com>
  * Author: Constantin Clauzel <constantin.clauzel@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -16,19 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package server
+package ghook
 
-import (
-	"net/http"
+import "github.com/spf13/pflag"
 
-	"github.com/SuperGreenLab/TipServer/internal/server/routes/ghook"
-	"github.com/julienschmidt/httprouter"
-	log "github.com/sirupsen/logrus"
+var (
+	hookSecret = pflag.String("GithubHookSecret", "#", "Topic to subscribe to")
 )
-
-// Start starts the server
-func Start() {
-	router := httprouter.New()
-	router.POST("/ghook", ghook.ServeGithubHookHandler)
-	go func() { log.Fatal(http.ListenAndServe(":8080", router)) }()
-}

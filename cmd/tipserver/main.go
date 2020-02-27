@@ -22,6 +22,7 @@ import (
 	"fmt"
 
 	"github.com/SuperGreenLab/TipServer/internal/server"
+	"github.com/SuperGreenLab/TipServer/internal/storage"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -44,6 +45,7 @@ func main() {
 	viper.BindPFlags(pflag.CommandLine)
 
 	server.Start()
+	storage.InitTreeFromRepo("https://github.com/supergreenlab/SuperGreenTips.git")
 
 	log.Info("TipServer started")
 
