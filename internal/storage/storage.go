@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019  SuperGreenLab <towelie@supergreenlab.com>
+ * Copyright (C) 2020  SuperGreenLab <towelie@supergreenlab.com>
  * Author: Constantin Clauzel <constantin.clauzel@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -16,21 +16,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package server
+package storage
 
 import (
-	"net/http"
-
-	"github.com/SuperGreenLab/TipBackend/internal/server/routes/ghook"
-	"github.com/SuperGreenLab/TipBackend/internal/server/routes/tips"
-	"github.com/julienschmidt/httprouter"
-	log "github.com/sirupsen/logrus"
+	"gopkg.in/src-d/go-billy.v4/memfs"
+	"gopkg.in/src-d/go-git.v4/storage/memory"
 )
 
-// Start starts the server
-func Start() {
-	router := httprouter.New()
-	router.POST("/ghook", ghook.ServeGithubHookHandler)
-	router.GET("/t/:user/:branch/:phase/:stage/:article", tips.ServeTips)
-	go func() { log.Fatal(http.ListenAndServe(":8080", router)) }()
-}
+var (
+	fs = memfs.New()
+	st = memory.NewStorage()
+)

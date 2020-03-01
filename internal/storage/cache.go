@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019  SuperGreenLab <towelie@supergreenlab.com>
+ * Copyright (C) 2020  SuperGreenLab <towelie@supergreenlab.com>
  * Author: Constantin Clauzel <constantin.clauzel@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -16,21 +16,26 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package server
+package storage
 
-import (
-	"net/http"
+import "fmt"
 
-	"github.com/SuperGreenLab/TipBackend/internal/server/routes/ghook"
-	"github.com/SuperGreenLab/TipBackend/internal/server/routes/tips"
-	"github.com/julienschmidt/httprouter"
-	log "github.com/sirupsen/logrus"
+// CacheStorage -
+type CacheStorage map[string]Tip
+
+var (
+	// Cache -
+	Cache = CacheStorage{}
 )
 
-// Start starts the server
-func Start() {
-	router := httprouter.New()
-	router.POST("/ghook", ghook.ServeGithubHookHandler)
-	router.GET("/t/:user/:branch/:phase/:stage/:article", tips.ServeTips)
-	go func() { log.Fatal(http.ListenAndServe(":8080", router)) }()
+// Push -
+func (cs CacheStorage) Push(tip Tip) {
+	key := fmt.Sprintf("%s/%s/%s/%s/%s", tip.User, tip.Branch, tip.Phase, tip.Stage, tip.Article.Name)
+	cs[key] = tip
+}
+
+// Get -
+func (cs CacheStorage) Get(user, branch, phase, stage, article string) Tip {
+	key := fmt.Sprintf("%s/%s/%s/%s/%s", user, branch, phase, stage, article)
+	return cs[key]
 }

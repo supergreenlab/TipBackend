@@ -19,23 +19,12 @@
 package storage
 
 import (
-	"errors"
-	"fmt"
-	"io"
-	"strings"
-
 	log "github.com/sirupsen/logrus"
-	"gopkg.in/src-d/go-billy.v4"
-	"gopkg.in/src-d/go-billy.v4/memfs"
 	"gopkg.in/src-d/go-git.v4"
-	"gopkg.in/src-d/go-git.v4/storage/memory"
-	"gopkg.in/yaml.v2"
 )
 
 var (
-	fs = memfs.New()
-	st = memory.NewStorage()
-	r  *git.Repository
+	r *git.Repository
 )
 
 // InitTreeFromRepo update the storge tree from github
@@ -81,65 +70,4 @@ func UpdateTreeFromRepo() {
 			log.Info("Updated tips tree")
 		}
 	}()
-}
-
-func crawl(fs billy.Filesystem, d string) error {
-	ls, err := fs.ReadDir(d)
-	if err != nil {
-		log.Error(err)
-		return err
-	}
-
-	hadError := false
-	for _, f := range ls {
-		path := fmt.Sprintf("%s/%s", d, f.Name())
-		if f.IsDir() {
-			crawl(fs, path)
-			continue
-		}
-
-		if strings.HasPrefix(f.Name(), ".") {
-			continue
-		}
-
-		if !strings.HasSuffix(f.Name(), ".yml") {
-			continue
-		}
-
-		hadError = hadError || processFile(fs, path) != nil
-	}
-	if hadError {
-		return errors.New("Did not parse all files, check logs")
-	}
-	return nil
-}
-
-func processFile(fs billy.Filesystem, path string) error {
-	fc, err := fs.Open(path)
-	if err != nil {
-		log.Errorf("%s\n%s", path, err)
-		return err
-	}
-	defer fc.Close()
-
-	st, err := fs.Stat(path)
-	if err != nil {
-		log.Errorf("%s\n%s", path, err)
-		return err
-	}
-
-	bc := make([]byte, st.Size())
-	_, err = fc.Read(bc)
-	if err != nil && err != io.EOF {
-		log.Errorf("%s\n%s", path, err)
-		return err
-	}
-
-	tip := Tip{}
-	err = yaml.Unmarshal(bc, &tip)
-	if err != nil {
-		log.Errorf("%s\n%s", path, err)
-		return err
-	}
-	return nil
 }

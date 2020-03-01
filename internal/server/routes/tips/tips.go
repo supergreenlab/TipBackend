@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019  SuperGreenLab <towelie@supergreenlab.com>
+ * Copyright (C) 2020  SuperGreenLab <towelie@supergreenlab.com>
  * Author: Constantin Clauzel <constantin.clauzel@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -16,21 +16,27 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package server
+package tips
 
 import (
 	"net/http"
 
-	"github.com/SuperGreenLab/TipBackend/internal/server/routes/ghook"
-	"github.com/SuperGreenLab/TipBackend/internal/server/routes/tips"
+	"github.com/SuperGreenLab/TipBackend/internal/storage"
+	"github.com/juju/httprequest"
 	"github.com/julienschmidt/httprouter"
 	log "github.com/sirupsen/logrus"
 )
 
-// Start starts the server
-func Start() {
-	router := httprouter.New()
-	router.POST("/ghook", ghook.ServeGithubHookHandler)
-	router.GET("/t/:user/:branch/:phase/:stage/:article", tips.ServeTips)
-	go func() { log.Fatal(http.ListenAndServe(":8080", router)) }()
+// ServeTips -
+func ServeTips(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	c := storage.Cache.Get(
+		p.ByName("user"),
+		p.ByName("branch"),
+		p.ByName("phase"),
+		p.ByName("stage"),
+		p.ByName("article"),
+	)
+	if err := httprequest.WriteJSON(w, http.StatusOK, c); err != nil {
+		log.Error(err)
+	}
 }

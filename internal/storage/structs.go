@@ -2,12 +2,28 @@ package storage
 
 // Tip -
 type Tip struct {
-	Tags      []string   `yaml:"tags"`
-	Reftime   string     `yaml:"reftime"`
-	Intro     Section    `yaml:"intro"`
-	Products  []Product  `yaml:"products"`
-	Reminders []Reminder `yaml:"reminders"`
-	Triggers  []Trigger  `yaml:"triggers"`
+	User    string             `json:"user"`
+	Branch  string             `json:"branch"`
+	Phase   string             `json:"phase"`
+	Stage   string             `json:"stage"`
+	Article map[string]Article `json:"article"`
+}
+
+func (t Tip) copyWith(phase, stage string) {
+}
+
+// Article -
+type Article struct {
+	Lang      string     `json:"lang"`
+	Name      string     `json:"name"`
+	Tags      []string   `yaml:"tags" json:"tags"`
+	Reftime   string     `yaml:"reftime" json:"refTime"`
+	Intro     Section    `yaml:"intro" json:"intro"`
+	Sections  []Section  `yaml:"sections" json:"sections"`
+	Products  []Product  `yaml:"products" json:"products"`
+	Sources   []Source   `yaml:"sources" json:"sources"`
+	Reminders []Reminder `yaml:"reminders" json:"reminders"`
+	Triggers  []Trigger  `yaml:"triggers" json:"triggers"`
 }
 
 // Section -
@@ -29,6 +45,12 @@ type Image struct {
 type Link struct {
 	Title string `yaml:"title"`
 	To    string `yaml:"to"`
+}
+
+// Source -
+type Source struct {
+	Title string `yaml:"title"`
+	URL   string `yaml:"url"`
 }
 
 // Product -
