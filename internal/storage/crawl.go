@@ -29,7 +29,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func crawl(fs billy.Filesystem, d string) error {
+func crawl(base Tip, fs billy.Filesystem, d string) error {
 	ls, err := fs.ReadDir(d)
 	if err != nil {
 		log.Error(err)
@@ -40,7 +40,7 @@ func crawl(fs billy.Filesystem, d string) error {
 	for _, f := range ls {
 		path := fmt.Sprintf("%s/%s", d, f.Name())
 		if f.IsDir() {
-			crawl(fs, path)
+			crawl(base, fs, path)
 			continue
 		}
 
@@ -52,7 +52,8 @@ func crawl(fs billy.Filesystem, d string) error {
 			continue
 		}
 
-		hadError = hadError || processFile(fs, path) != nil
+		article, err := processFile(fs, path)
+		hadError = hadError || err != nil
 	}
 	if hadError {
 		return errors.New("Did not parse all files, check logs")
@@ -60,32 +61,32 @@ func crawl(fs billy.Filesystem, d string) error {
 	return nil
 }
 
-func processFile(fs billy.Filesystem, path string) error {
+func processFile(fs billy.Filesystem, path string) (article, error) {
+	article := Article{}
 	fc, err := fs.Open(path)
 	if err != nil {
 		log.Errorf("%s\n%s", path, err)
-		return err
+		return article, err
 	}
 	defer fc.Close()
 
 	st, err := fs.Stat(path)
 	if err != nil {
 		log.Errorf("%s\n%s", path, err)
-		return err
+		return article, err
 	}
 
 	bc := make([]byte, st.Size())
 	_, err = fc.Read(bc)
 	if err != nil && err != io.EOF {
 		log.Errorf("%s\n%s", path, err)
-		return err
+		return article, err
 	}
 
-	article := Article{}
-	err = yaml.Unmarshal(bc, &tip)
+	err = yaml.Unmarshal(bc, &article)
 	if err != nil {
 		log.Errorf("%s\n%s", path, err)
-		return err
+		return article, err
 	}
-	return nil
+	return article, nil
 }

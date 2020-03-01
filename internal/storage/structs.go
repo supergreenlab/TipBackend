@@ -9,6 +9,11 @@ type Tip struct {
 	Article map[string]Article `json:"article"`
 }
 
+// NewTipForGithubRepo -
+func NewTipForGithubRepo(repo string) Tip {
+	return Tip{}
+}
+
 func (t Tip) copyWith(phase, stage string) {
 }
 

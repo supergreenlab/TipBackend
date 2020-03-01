@@ -24,22 +24,23 @@ import (
 )
 
 var (
-	r *git.Repository
+	repos map[string]*git.Repository
 )
 
-// InitTreeFromRepo update the storge tree from github
+// InitTreeFromRepo init the storage tree from github
 func InitTreeFromRepo(repo string) {
 	go func() {
-		var err error
-		r, err = git.Clone(st, fs, &git.CloneOptions{
+		r, err := git.Clone(st, fs, &git.CloneOptions{
 			URL: repo,
 		})
 		if err != nil {
 			log.Error(err)
 			return
 		}
+		repos[repo] = r
 
-		err = crawl(fs, "")
+		tip := storage.NewTipForGithubRepo(repo)
+		err = crawl(tip, fs, "")
 		if err != nil {
 			log.Warning("Did not update tips tree")
 		} else {
@@ -48,9 +49,16 @@ func InitTreeFromRepo(repo string) {
 	}()
 }
 
-// UpdateTreeFromRepo update the storge tree from github
-func UpdateTreeFromRepo() {
+// UpdateTreeFromRepo update the storage tree from github
+func UpdateTreeFromRepo(repo string) {
 	go func() {
+		r, ok := repos[repo]
+		if ok != true {
+			log.Warningf("Unknown repo %s, initializing...", repo)
+			InitTreeFromRepo(repo)
+			return
+		}
+
 		w, err := r.Worktree()
 		if err != nil {
 			log.Error(err)
@@ -63,7 +71,8 @@ func UpdateTreeFromRepo() {
 			return
 		}
 
-		err = crawl(fs, "")
+		tip := storage.NewTipForGithubRepo(repo)
+		err = crawl(tip, fs, "")
 		if err != nil {
 			log.Warning("Did not update tips tree")
 		} else {
