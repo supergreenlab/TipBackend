@@ -22,7 +22,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/SuperGreenLab/TipServer/internal/storage"
+	"github.com/SuperGreenLab/TipBackend/internal/storage"
 	"github.com/google/go-github/v29/github"
 	"github.com/julienschmidt/httprouter"
 )

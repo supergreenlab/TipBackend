@@ -21,7 +21,7 @@ package server
 import (
 	"net/http"
 
-	"github.com/SuperGreenLab/TipServer/internal/server/routes/ghook"
+	"github.com/SuperGreenLab/TipBackend/internal/server/routes/ghook"
 	"github.com/julienschmidt/httprouter"
 	log "github.com/sirupsen/logrus"
 )

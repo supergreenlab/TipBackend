@@ -1,4 +1,4 @@
-module github.com/SuperGreenLab/TipServer
+module github.com/SuperGreenLab/TipBackend
 
 go 1.13
 

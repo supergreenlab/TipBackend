@@ -21,16 +21,16 @@ package main
 import (
 	"fmt"
 
-	"github.com/SuperGreenLab/TipServer/internal/server"
-	"github.com/SuperGreenLab/TipServer/internal/storage"
+	"github.com/SuperGreenLab/TipBackend/internal/server"
+	"github.com/SuperGreenLab/TipBackend/internal/storage"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
 
 func main() {
-	viper.SetConfigName("tipserver")
-	viper.AddConfigPath("/etc/tipserver")
+	viper.SetConfigName("tipbackend")
+	viper.AddConfigPath("/etc/tipbackend")
 	viper.AddConfigPath(".")
 
 	err := viper.ReadInConfig()
@@ -38,7 +38,7 @@ func main() {
 		panic(fmt.Errorf("fatal error config file: %s", err))
 	}
 
-	viper.SetEnvPrefix("TIPSERVER")
+	viper.SetEnvPrefix("TIPBACKEND")
 	viper.AutomaticEnv()
 
 	pflag.Parse()
@@ -47,7 +47,7 @@ func main() {
 	server.Start()
 	storage.InitTreeFromRepo("https://github.com/supergreenlab/SuperGreenTips.git")
 
-	log.Info("TipServer started")
+	log.Info("TipBackend started")
 
 	select {}
 }
