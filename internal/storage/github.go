@@ -19,6 +19,7 @@
 package storage
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -45,10 +46,16 @@ func InitTreeFromRepo(repo string) {
 			URL: repo,
 		})
 		if err != nil {
-			log.Fatal(err)
+			log.Error(err)
+			return
 		}
 
-		crawl(fs, "")
+		err = crawl(fs, "")
+		if err != nil {
+			log.Warning("Did not update tips tree")
+		} else {
+			log.Info("Updated tips tree")
+		}
 	}()
 }
 
@@ -57,24 +64,33 @@ func UpdateTreeFromRepo() {
 	go func() {
 		w, err := r.Worktree()
 		if err != nil {
-			log.Fatal(err)
+			log.Error(err)
+			return
 		}
 
-		err = w.Pull(nil)
+		err = w.Pull(&git.PullOptions{RemoteName: "origin"})
 		if err != nil {
-			log.Fatal(err)
+			log.Error(err)
+			return
 		}
 
-		crawl(fs, "")
+		err = crawl(fs, "")
+		if err != nil {
+			log.Warning("Did not update tips tree")
+		} else {
+			log.Info("Updated tips tree")
+		}
 	}()
 }
 
-func crawl(fs billy.Filesystem, d string) {
+func crawl(fs billy.Filesystem, d string) error {
 	ls, err := fs.ReadDir(d)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
+		return err
 	}
 
+	hadError := false
 	for _, f := range ls {
 		path := fmt.Sprintf("%s/%s", d, f.Name())
 		if f.IsDir() {
@@ -90,31 +106,40 @@ func crawl(fs billy.Filesystem, d string) {
 			continue
 		}
 
-		log.Println(path)
-
-		fc, err := fs.Open(path)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		st, err := fs.Stat(path)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		bc := make([]byte, st.Size())
-		log.Infof("stat %d bytes", st.Size())
-		_, err = fc.Read(bc)
-		if err != nil && err != io.EOF {
-			log.Fatal(err)
-		}
-
-		tip := Tip{}
-		err = yaml.Unmarshal(bc, &tip)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		log.Info(tip)
+		hadError = hadError || processFile(fs, path) != nil
 	}
+	if hadError {
+		return errors.New("Did not parse all files, check logs")
+	}
+	return nil
+}
+
+func processFile(fs billy.Filesystem, path string) error {
+	fc, err := fs.Open(path)
+	if err != nil {
+		log.Errorf("%s\n%s", path, err)
+		return err
+	}
+	defer fc.Close()
+
+	st, err := fs.Stat(path)
+	if err != nil {
+		log.Errorf("%s\n%s", path, err)
+		return err
+	}
+
+	bc := make([]byte, st.Size())
+	_, err = fc.Read(bc)
+	if err != nil && err != io.EOF {
+		log.Errorf("%s\n%s", path, err)
+		return err
+	}
+
+	tip := Tip{}
+	err = yaml.Unmarshal(bc, &tip)
+	if err != nil {
+		log.Errorf("%s\n%s", path, err)
+		return err
+	}
+	return nil
 }

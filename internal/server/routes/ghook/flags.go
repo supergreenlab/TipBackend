@@ -21,5 +21,5 @@ package ghook
 import "github.com/spf13/pflag"
 
 var (
-	hookSecret = pflag.String("GithubHookSecret", "#", "Topic to subscribe to")
+	hookSecret = pflag.String("githubhooksecret", "", "Github hook secret")
 )

@@ -25,22 +25,24 @@ import (
 	"github.com/SuperGreenLab/TipBackend/internal/storage"
 	"github.com/google/go-github/v29/github"
 	"github.com/julienschmidt/httprouter"
+	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 )
 
 // ServeGithubHookHandler Github hook
 func ServeGithubHookHandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	_, err := github.ValidatePayload(r, []byte(*hookSecret))
+	hs := viper.GetString("GithubHookSecret")
+	payload, err := github.ValidatePayload(r, []byte(hs))
 	if err != nil {
+		log.Errorf("ValidatePayload error:\n%s", err)
 		http.Error(w, err.Error(), 400)
 		return
 	}
 	gp := gitPush{}
-	if r.Body == nil {
-		http.Error(w, "Missing body", 400)
-		return
-	}
-	err = json.NewDecoder(r.Body).Decode(&gp)
+	err = json.Unmarshal(payload, &gp)
 	if err != nil {
+		logrus.Errorf("JSON decode error:\n%s", err)
 		http.Error(w, err.Error(), 400)
 		return
 	}

@@ -44,8 +44,9 @@ func main() {
 	pflag.Parse()
 	viper.BindPFlags(pflag.CommandLine)
 
-	server.Start()
 	storage.InitTreeFromRepo("https://github.com/supergreenlab/SuperGreenTips.git")
+
+	server.Start()
 
 	log.Info("TipBackend started")
 
