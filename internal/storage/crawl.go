@@ -26,26 +26,56 @@ import (
 	"strings"
 
 	log "github.com/sirupsen/logrus"
+	"github.com/slack-go/slack"
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
 	"gopkg.in/src-d/go-billy.v4"
 	"gopkg.in/yaml.v2"
 )
 
 var (
+	slackToken = pflag.String("slacktoken", "", "Slack token for crawl error reporting")
 	pathRegexp = regexp.MustCompile("/([^/]+)/([^/]+)/([^/]+)/([^.]+).yml")
+	slackAPI   *slack.Client
 )
 
-func crawl(base Tip, fs billy.Filesystem, d string) error {
+func postToSlack(msg string) {
+	if slackAPI == nil {
+		slackAPI = slack.New(viper.GetString("SlackToken"))
+	}
+	_, _, err := slackAPI.PostMessage("CUR0UFY8M", slack.MsgOptionText(msg, false), slack.MsgOptionAttachments())
+	if err != nil {
+		log.Warning(err)
+	}
+
+}
+
+func startCrawl(base Tip, fs billy.Filesystem, d string) error {
+	errs := []error{}
+	errs = crawl(base, fs, d, errs)
+	if len(errs) > 0 {
+		msg := ""
+		for _, e := range errs {
+			msg = fmt.Sprintln(e)
+		}
+		postToSlack(msg)
+		return errors.New("Did not parse all files, check logs")
+	}
+	postToSlack("Crawling successful")
+	return nil
+}
+
+func crawl(base Tip, fs billy.Filesystem, d string, errs []error) []error {
 	ls, err := fs.ReadDir(d)
 	if err != nil {
 		log.Error(err)
-		return err
+		return append(errs, err)
 	}
 
-	hadError := false
 	for _, f := range ls {
 		path := fmt.Sprintf("%s/%s", d, f.Name())
 		if f.IsDir() {
-			crawl(base, fs, path)
+			errs = crawl(base, fs, path, errs)
 			continue
 		}
 
@@ -60,16 +90,16 @@ func crawl(base Tip, fs billy.Filesystem, d string) error {
 		pm := pathRegexp.FindAllStringSubmatch(path, -1)
 		if len(pm) >= 1 && len(pm[0]) == 5 {
 			article, err := processFile(fs, path)
-			hadError = hadError || err != nil
-			article.Name = pm[0][3]
-			article.Lang = pm[0][4]
-			Cache.Push(base.copyWith(pm[0][1], pm[0][2], pm[0][3], pm[0][4], article))
+			if err != nil {
+				errs = append(errs, err)
+			} else {
+				article.Name = pm[0][3]
+				article.Lang = pm[0][4]
+				Cache.Push(base.copyWith(pm[0][1], pm[0][2], pm[0][3], pm[0][4], article))
+			}
 		}
 	}
-	if hadError {
-		return errors.New("Did not parse all files, check logs")
-	}
-	return nil
+	return errs
 }
 
 func processFile(fs billy.Filesystem, path string) (Article, error) {
@@ -96,8 +126,9 @@ func processFile(fs billy.Filesystem, path string) (Article, error) {
 
 	err = yaml.Unmarshal(bc, &article)
 	if err != nil {
-		log.Errorf("%s\n%s", path, err)
-		return article, err
+		errMsg := fmt.Sprintf("%s\n%s", path, err)
+		log.Errorf(errMsg)
+		return article, errors.New(errMsg)
 	}
 	return article, nil
 }

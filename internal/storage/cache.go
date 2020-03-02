@@ -22,8 +22,6 @@ import (
 	"fmt"
 	"sort"
 	"strings"
-
-	"github.com/sirupsen/logrus"
 )
 
 // CacheStorage -
@@ -37,7 +35,6 @@ var (
 // Push -
 func (cs CacheStorage) Push(tip Tip) {
 	key := fmt.Sprintf("%s/%s/%s/%s/%s/%s", tip.User, tip.Repo, tip.Branch, tip.Phase, tip.Stage, tip.Article.Name)
-	logrus.Info(key)
 	if _, ok := cs[key]; ok == false {
 		cs[key] = map[string]Tip{}
 	}

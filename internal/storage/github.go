@@ -48,7 +48,7 @@ func InitTreeFromRepo(repo string) {
 		}
 		repos[key] = r
 
-		err = crawl(tip, fs, "")
+		err = startCrawl(tip, fs, "")
 		if err != nil {
 			log.Warning("Did not update tips tree")
 		} else {
@@ -86,7 +86,7 @@ func UpdateTreeFromRepo(repo string) {
 			return
 		}
 
-		err = crawl(tip, fs, "")
+		err = startCrawl(tip, fs, "")
 		if err != nil {
 			log.Warning("Did not update tips tree")
 		} else {

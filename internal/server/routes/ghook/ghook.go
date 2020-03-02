@@ -25,7 +25,6 @@ import (
 	"github.com/SuperGreenLab/TipBackend/internal/storage"
 	"github.com/google/go-github/v29/github"
 	"github.com/julienschmidt/httprouter"
-	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
@@ -42,7 +41,7 @@ func ServeGithubHookHandler(w http.ResponseWriter, r *http.Request, p httprouter
 	gp := gitPush{}
 	err = json.Unmarshal(payload, &gp)
 	if err != nil {
-		logrus.Errorf("JSON decode error:\n%s", err)
+		log.Errorf("JSON decode error:\n%s", err)
 		http.Error(w, err.Error(), 400)
 		return
 	}

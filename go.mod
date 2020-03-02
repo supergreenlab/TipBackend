@@ -10,6 +10,7 @@ require (
 	github.com/prometheus/common v0.7.0
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/sirupsen/logrus v1.4.2
+	github.com/slack-go/slack v0.6.2
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.6.2
 	github.com/src-d/go-git v4.7.0+incompatible
