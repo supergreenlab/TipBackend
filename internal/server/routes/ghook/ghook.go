@@ -47,7 +47,7 @@ func ServeGithubHookHandler(w http.ResponseWriter, r *http.Request, p httprouter
 		return
 	}
 
-	storage.UpdateTreeFromRepo()
+	storage.UpdateTreeFromRepo(gp.Repository.URL)
 
 	w.Write([]byte("OK"))
 }

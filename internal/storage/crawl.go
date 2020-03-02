@@ -22,11 +22,16 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"regexp"
 	"strings"
 
-	"github.com/prometheus/common/log"
+	log "github.com/sirupsen/logrus"
 	"gopkg.in/src-d/go-billy.v4"
 	"gopkg.in/yaml.v2"
+)
+
+var (
+	pathRegexp = regexp.MustCompile("/([^/]+)/([^/]+)/([^/]+)/([^.]+).yml")
 )
 
 func crawl(base Tip, fs billy.Filesystem, d string) error {
@@ -52,8 +57,14 @@ func crawl(base Tip, fs billy.Filesystem, d string) error {
 			continue
 		}
 
-		article, err := processFile(fs, path)
-		hadError = hadError || err != nil
+		pm := pathRegexp.FindAllStringSubmatch(path, -1)
+		if len(pm) >= 1 && len(pm[0]) == 5 {
+			article, err := processFile(fs, path)
+			hadError = hadError || err != nil
+			article.Name = pm[0][3]
+			article.Lang = pm[0][4]
+			Cache.Push(base.copyWith(pm[0][1], pm[0][2], pm[0][3], pm[0][4], article))
+		}
 	}
 	if hadError {
 		return errors.New("Did not parse all files, check logs")
@@ -61,7 +72,7 @@ func crawl(base Tip, fs billy.Filesystem, d string) error {
 	return nil
 }
 
-func processFile(fs billy.Filesystem, path string) (article, error) {
+func processFile(fs billy.Filesystem, path string) (Article, error) {
 	article := Article{}
 	fc, err := fs.Open(path)
 	if err != nil {

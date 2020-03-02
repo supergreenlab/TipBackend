@@ -18,10 +18,16 @@
 
 package storage
 
-import "fmt"
+import (
+	"fmt"
+	"sort"
+	"strings"
+
+	"github.com/sirupsen/logrus"
+)
 
 // CacheStorage -
-type CacheStorage map[string]Tip
+type CacheStorage map[string]map[string]Tip
 
 var (
 	// Cache -
@@ -30,12 +36,48 @@ var (
 
 // Push -
 func (cs CacheStorage) Push(tip Tip) {
-	key := fmt.Sprintf("%s/%s/%s/%s/%s", tip.User, tip.Branch, tip.Phase, tip.Stage, tip.Article.Name)
-	cs[key] = tip
+	key := fmt.Sprintf("%s/%s/%s/%s/%s/%s", tip.User, tip.Repo, tip.Branch, tip.Phase, tip.Stage, tip.Article.Name)
+	logrus.Info(key)
+	if _, ok := cs[key]; ok == false {
+		cs[key] = map[string]Tip{}
+	}
+	cs[key][tip.Lang] = tip
 }
 
 // Get -
-func (cs CacheStorage) Get(user, branch, phase, stage, article string) Tip {
-	key := fmt.Sprintf("%s/%s/%s/%s/%s", user, branch, phase, stage, article)
-	return cs[key]
+func (cs CacheStorage) Get(user, repo, branch, phase, stage, article, lang string) (Tip, bool) {
+	key := fmt.Sprintf("%s/%s/%s/%s/%s/%s", user, repo, branch, phase, stage, article)
+	c, ok := cs[key]
+	if ok == false {
+		return Tip{}, ok
+	}
+	t, ok := c[lang]
+	return t, ok
+}
+
+// List -
+func (cs CacheStorage) List(user, repo, branch, phase, stage, article, lang string) []Tip {
+	keyPrefixComponent := []string{phase, stage, article}
+	keyPrefix := fmt.Sprintf("%s/%s/%s", user, repo, branch)
+	for _, v := range keyPrefixComponent {
+		if v != "" {
+			keyPrefix = fmt.Sprintf("%s/%s", keyPrefix, v)
+		}
+	}
+	keys := make([]string, 0, len(cs))
+	for k := range cs {
+		if strings.HasPrefix(k, keyPrefix) {
+			keys = append(keys, k)
+		}
+	}
+	sort.Strings(keys)
+	res := make([]Tip, len(keys))
+	for i, v := range keys {
+		t, ok := cs[v][lang]
+		if ok == false {
+			t = cs[v]["en"]
+		}
+		res[i] = t
+	}
+	return res
 }

@@ -1,20 +1,62 @@
+/*
+ * Copyright (C) 2020  SuperGreenLab <towelie@supergreenlab.com>
+ * Author: Constantin Clauzel <constantin.clauzel@gmail.com>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package storage
+
+import (
+	"errors"
+	"regexp"
+)
+
+var repoRegExp = regexp.MustCompile("github.com/([^/]+)/([^.|$]+)")
 
 // Tip -
 type Tip struct {
-	User    string             `json:"user"`
-	Branch  string             `json:"branch"`
-	Phase   string             `json:"phase"`
-	Stage   string             `json:"stage"`
-	Article map[string]Article `json:"article"`
+	User    string  `json:"user"`
+	Repo    string  `json:"repo"`
+	Branch  string  `json:"branch"`
+	Phase   string  `json:"phase"`
+	Stage   string  `json:"stage"`
+	Name    string  `json:"name"`
+	Lang    string  `json:"lang"`
+	Article Article `json:"article"`
 }
 
 // NewTipForGithubRepo -
-func NewTipForGithubRepo(repo string) Tip {
-	return Tip{}
+func NewTipForGithubRepo(repo string) (Tip, error) {
+	ms := repoRegExp.FindAllStringSubmatch(repo, -1)
+	if len(ms) >= 1 && len(ms[0]) == 3 {
+		return Tip{User: ms[0][1], Repo: ms[0][2], Branch: "master"}, nil
+	}
+	return Tip{}, errors.New("malformed github repo url")
 }
 
-func (t Tip) copyWith(phase, stage string) {
+func (t Tip) copyWith(phase, stage, name, lang string, article Article) Tip {
+	return Tip{
+		User:    t.User,
+		Repo:    t.Repo,
+		Branch:  t.Branch,
+		Phase:   phase,
+		Stage:   stage,
+		Name:    name,
+		Lang:    lang,
+		Article: article,
+	}
 }
 
 // Article -

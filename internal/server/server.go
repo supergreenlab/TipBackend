@@ -31,6 +31,9 @@ import (
 func Start() {
 	router := httprouter.New()
 	router.POST("/ghook", ghook.ServeGithubHookHandler)
-	router.GET("/t/:user/:branch/:phase/:stage/:article", tips.ServeTips)
+	router.GET("/t/:user/:repo/:branch/p/:phase/s/:stage/a/:article/l/:lang", tips.ServeTips)
+	router.GET("/t/:user/:repo/:branch/p/:phase/s/:stage/l/:lang", tips.ServeTips)
+	router.GET("/t/:user/:repo/:branch/p/:phase/l/:lang", tips.ServeTips)
+	router.GET("/t/:user/:repo/:branch/l/:lang", tips.ServeTips)
 	go func() { log.Fatal(http.ListenAndServe(":8080", router)) }()
 }

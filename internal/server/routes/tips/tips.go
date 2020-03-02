@@ -29,14 +29,20 @@ import (
 
 // ServeTips -
 func ServeTips(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	c := storage.Cache.Get(
+	tips := storage.Cache.List(
 		p.ByName("user"),
+		p.ByName("repo"),
 		p.ByName("branch"),
 		p.ByName("phase"),
 		p.ByName("stage"),
 		p.ByName("article"),
+		p.ByName("lang"),
 	)
-	if err := httprequest.WriteJSON(w, http.StatusOK, c); err != nil {
+	if err := httprequest.WriteJSON(w, http.StatusOK, struct {
+		Tips []storage.Tip `json:"tips"`
+	}{
+		Tips: tips,
+	}); err != nil {
 		log.Error(err)
 	}
 }

@@ -19,17 +19,26 @@
 package storage
 
 import (
+	"fmt"
+
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/src-d/go-git.v4"
 )
 
 var (
-	repos map[string]*git.Repository
+	repos = map[string]*git.Repository{}
 )
 
 // InitTreeFromRepo init the storage tree from github
 func InitTreeFromRepo(repo string) {
 	go func() {
+		tip, err := NewTipForGithubRepo(repo)
+		if err != nil {
+			log.Error(err)
+			return
+		}
+
+		key := fmt.Sprintf("%s/%s", tip.User, tip.Repo)
 		r, err := git.Clone(st, fs, &git.CloneOptions{
 			URL: repo,
 		})
@@ -37,9 +46,8 @@ func InitTreeFromRepo(repo string) {
 			log.Error(err)
 			return
 		}
-		repos[repo] = r
+		repos[key] = r
 
-		tip := storage.NewTipForGithubRepo(repo)
 		err = crawl(tip, fs, "")
 		if err != nil {
 			log.Warning("Did not update tips tree")
@@ -52,9 +60,16 @@ func InitTreeFromRepo(repo string) {
 // UpdateTreeFromRepo update the storage tree from github
 func UpdateTreeFromRepo(repo string) {
 	go func() {
-		r, ok := repos[repo]
+		tip, err := NewTipForGithubRepo(repo)
+		if err != nil {
+			log.Error(err)
+			return
+		}
+
+		key := fmt.Sprintf("%s/%s", tip.User, tip.Repo)
+		r, ok := repos[key]
 		if ok != true {
-			log.Warningf("Unknown repo %s, initializing...", repo)
+			log.Warningf("Unknown repo %s, initializing...", key)
 			InitTreeFromRepo(repo)
 			return
 		}
@@ -71,7 +86,6 @@ func UpdateTreeFromRepo(repo string) {
 			return
 		}
 
-		tip := storage.NewTipForGithubRepo(repo)
 		err = crawl(tip, fs, "")
 		if err != nil {
 			log.Warning("Did not update tips tree")
