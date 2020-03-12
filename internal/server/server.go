@@ -24,6 +24,7 @@ import (
 	"github.com/SuperGreenLab/TipBackend/internal/server/routes/ghook"
 	"github.com/SuperGreenLab/TipBackend/internal/server/routes/tips"
 	"github.com/julienschmidt/httprouter"
+	"github.com/rs/cors"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -35,5 +36,8 @@ func Start() {
 	router.GET("/t/:user/:repo/:branch/p/:phase/s/:stage/l/:lang", tips.ServeTips)
 	router.GET("/t/:user/:repo/:branch/p/:phase/l/:lang", tips.ServeTips)
 	router.GET("/t/:user/:repo/:branch/l/:lang", tips.ServeTips)
-	go func() { log.Fatal(http.ListenAndServe(":8080", router)) }()
+
+	handler := cors.Default().Handler(router)
+
+	go func() { log.Fatal(http.ListenAndServe(":8080", handler)) }()
 }

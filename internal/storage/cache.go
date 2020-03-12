@@ -24,6 +24,9 @@ import (
 	"strings"
 )
 
+// DefaultLang -
+const DefaultLang = "en"
+
 // CacheStorage -
 type CacheStorage map[string]map[string]Tip
 
@@ -39,6 +42,7 @@ func (cs CacheStorage) Push(tip Tip) {
 		cs[key] = map[string]Tip{}
 	}
 	cs[key][tip.Lang] = tip
+
 }
 
 // Get -
@@ -53,7 +57,7 @@ func (cs CacheStorage) Get(user, repo, branch, phase, stage, article, lang strin
 }
 
 // List -
-func (cs CacheStorage) List(user, repo, branch, phase, stage, article, lang string) []Tip {
+func (cs CacheStorage) List(from, to int, user, repo, branch, phase, stage, article, lang string) []Tip {
 	keyPrefixComponent := []string{phase, stage, article}
 	keyPrefix := fmt.Sprintf("%s/%s/%s", user, repo, branch)
 	for _, v := range keyPrefixComponent {
@@ -67,12 +71,26 @@ func (cs CacheStorage) List(user, repo, branch, phase, stage, article, lang stri
 			keys = append(keys, k)
 		}
 	}
+
+	if from >= to {
+		from = -1
+		to = -1
+	}
+
+	if from < 0 {
+		from = 0
+	}
+	if to < 0 || to > len(keys) {
+		to = len(keys)
+	}
+
 	sort.Strings(keys)
+	keys = keys[from:to]
 	res := make([]Tip, len(keys))
 	for i, v := range keys {
 		t, ok := cs[v][lang]
 		if ok == false {
-			t = cs[v]["en"]
+			t = cs[v][DefaultLang]
 		}
 		res[i] = t
 	}

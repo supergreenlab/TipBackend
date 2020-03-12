@@ -20,6 +20,7 @@ package tips
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/SuperGreenLab/TipBackend/internal/storage"
 	"github.com/juju/httprequest"
@@ -29,7 +30,20 @@ import (
 
 // ServeTips -
 func ServeTips(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	from := r.URL.Query().Get("from")
+	ifrom, err := strconv.Atoi(from)
+	if err != nil {
+		ifrom = -1
+	}
+
+	to := r.URL.Query().Get("to")
+	ito, err := strconv.Atoi(to)
+	if err != nil {
+		ito = -1
+	}
+
 	tips := storage.Cache.List(
+		ifrom, ito,
 		p.ByName("user"),
 		p.ByName("repo"),
 		p.ByName("branch"),

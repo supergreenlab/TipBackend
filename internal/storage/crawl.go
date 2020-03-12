@@ -34,12 +34,17 @@ import (
 )
 
 var (
-	slackToken = pflag.String("slacktoken", "", "Slack token for crawl error reporting")
-	pathRegexp = regexp.MustCompile("/([^/]+)/([^/]+)/([^/]+)/([^.]+).yml")
-	slackAPI   *slack.Client
+	slackToken   = pflag.String("slacktoken", "", "Slack token for crawl error reporting")
+	slackEnabled = pflag.Bool("slackenabled", false, "Slack token for crawl error reporting")
+	pathRegexp   = regexp.MustCompile("/([^/]+)/([^/]+)/([^/]+)/([^.]+).yml")
+	slackAPI     *slack.Client
 )
 
 func postToSlack(msg string) {
+	enabled := viper.GetBool("SlackEnabled")
+	if enabled == false {
+		return
+	}
 	if slackAPI == nil {
 		slackAPI = slack.New(viper.GetString("SlackToken"))
 	}

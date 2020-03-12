@@ -62,6 +62,7 @@ func (t Tip) copyWith(phase, stage, name, lang string, article Article) Tip {
 // Article -
 type Article struct {
 	Lang      string     `json:"lang"`
+	Title     string     `json:"title"`
 	Name      string     `json:"name"`
 	Tags      []string   `yaml:"tags" json:"tags"`
 	Reftime   string     `yaml:"reftime" json:"refTime"`
@@ -75,38 +76,38 @@ type Article struct {
 
 // Section -
 type Section struct {
-	Title       string    `yaml:"title"`
-	Image       Image     `yaml:"image"`
-	Text        string    `yaml:"text"`
-	SubSections []Section `yaml:"subsections"`
-	Link        Link      `yaml:"link"`
+	Title       string    `yaml:"title" json:"title"`
+	Image       Image     `yaml:"image" json:"image"`
+	Text        string    `yaml:"text"  json:"text"`
+	SubSections []Section `yaml:"subsections" json:"subSections"`
+	Link        Link      `yaml:"link" json:"link"`
 }
 
 // Image -
 type Image struct {
-	URL    string `yaml:"url"`
-	Layout string `yaml:"layout"`
+	URL    string `yaml:"url" json:"url"`
+	Layout string `yaml:"layout" json:"layout"`
 }
 
 // Link -
 type Link struct {
-	Title string `yaml:"title"`
-	To    string `yaml:"to"`
+	Title string `yaml:"title" json:"title"`
+	To    string `yaml:"to" json:"to"`
 }
 
 // Source -
 type Source struct {
-	Title string `yaml:"title"`
-	URL   string `yaml:"url"`
+	Title string `yaml:"title" json:"title"`
+	URL   string `yaml:"url" json:"URL"`
 }
 
 // Product -
 type Product struct {
-	Name string `yaml:"name"`
+	Name string `yaml:"name" json:"name"`
 	Urls []struct {
-		Zone  string `yaml:"zone"`
-		Image string `yaml:"image"`
-		URL   string `yaml:"url"`
+		Zone  string `yaml:"zone" json:"zone"`
+		Image string `yaml:"image" json:"image"`
+		URL   string `yaml:"url" json:"URL"`
 	}
 }
 

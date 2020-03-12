@@ -8,6 +8,7 @@ require (
 	github.com/juju/httprequest v2.0.0+incompatible
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/prometheus/common v0.7.0
+	github.com/rs/cors v1.7.0
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/sirupsen/logrus v1.4.2
 	github.com/slack-go/slack v0.6.2
