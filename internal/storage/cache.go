@@ -56,6 +56,26 @@ func (cs CacheStorage) Get(user, repo, branch, phase, stage, article, lang strin
 	return t, ok
 }
 
+// GetSlug -
+func (cs CacheStorage) GetSlug(user, repo, branch, slug, lang string) (Tip, bool) {
+	key := ""
+	for k := range cs {
+		if strings.HasPrefix(k, fmt.Sprintf("%s/%s/%s", user, repo, branch)) && strings.HasSuffix(k, slug) {
+			key = k
+			break
+		}
+	}
+	if key == "" {
+		return Tip{}, false
+	}
+	c, ok := cs[key]
+	if ok == false {
+		return Tip{}, false
+	}
+	t, ok := c[lang]
+	return t, true
+}
+
 // List -
 func (cs CacheStorage) List(from, to int, user, repo, branch, phase, stage, article, lang string) []Tip {
 	keyPrefixComponent := []string{phase, stage, article}

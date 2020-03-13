@@ -36,6 +36,7 @@ func Start() {
 	router.GET("/t/:user/:repo/:branch/p/:phase/s/:stage/l/:lang", tips.ServeTips)
 	router.GET("/t/:user/:repo/:branch/p/:phase/l/:lang", tips.ServeTips)
 	router.GET("/t/:user/:repo/:branch/l/:lang", tips.ServeTips)
+	router.GET("/t/:user/:repo/:branch/s/:slug/l/:lang", tips.ServeTip)
 
 	handler := cors.Default().Handler(router)
 
