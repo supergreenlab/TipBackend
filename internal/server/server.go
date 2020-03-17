@@ -21,6 +21,7 @@ package server
 import (
 	"net/http"
 
+	"github.com/SuperGreenLab/TipBackend/internal/server/routes/assets"
 	"github.com/SuperGreenLab/TipBackend/internal/server/routes/ghook"
 	"github.com/SuperGreenLab/TipBackend/internal/server/routes/tips"
 	"github.com/julienschmidt/httprouter"
@@ -37,6 +38,7 @@ func Start() {
 	router.GET("/t/:user/:repo/:branch/p/:phase/l/:lang", tips.ServeTips)
 	router.GET("/t/:user/:repo/:branch/l/:lang", tips.ServeTips)
 	router.GET("/t/:user/:repo/:branch/s/:slug/l/:lang", tips.ServeTip)
+	router.GET("/a/:user/:repo/:branch/s/:slug/:file", assets.ServeAsset)
 
 	handler := cors.Default().Handler(router)
 

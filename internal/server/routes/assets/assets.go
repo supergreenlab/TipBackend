@@ -16,41 +16,33 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package storage
+package assets
 
 import (
-	"io"
+	"fmt"
+	"net/http"
+	"strings"
 
+	"github.com/SuperGreenLab/TipBackend/internal/storage"
+	"github.com/juju/httprequest"
+	"github.com/julienschmidt/httprouter"
 	log "github.com/sirupsen/logrus"
-	"gopkg.in/src-d/go-billy.v4/memfs"
-	"gopkg.in/src-d/go-git.v4/storage/memory"
 )
 
-var (
-	fs = memfs.New()
-	st = memory.NewStorage()
-)
+// ServeAsset -
+func ServeAsset(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	path, ok := storage.Cache.GetPathFromSlug(p.ByName("user"), p.ByName("repo"), p.ByName("branch"), p.ByName("slug"))
+	if ok == false {
+		httprequest.WriteJSON(w, http.StatusNotFound, map[string]string{"status": "Not found"})
+		return
+	}
 
-// GetFileAt -
-func GetFileAt(path string) ([]byte, error) {
-	fc, err := fs.Open(path)
+	path = strings.ReplaceAll(path, fmt.Sprintf("%s/%s/%s", p.ByName("user"), p.ByName("repo"), p.ByName("branch")), "")
+	b, err := storage.GetFileAt(fmt.Sprintf("%s/assets/%s", path, p.ByName("file")))
+
+	w.WriteHeader(http.StatusOK)
+	_, err = w.Write(b)
 	if err != nil {
-		log.Errorf("%s\n%s", path, err)
-		return nil, err
+		log.Error(err)
 	}
-	defer fc.Close()
-
-	st, err := fs.Stat(path)
-	if err != nil {
-		log.Errorf("%s\n%s", path, err)
-		return nil, err
-	}
-
-	bc := make([]byte, st.Size())
-	_, err = fc.Read(bc)
-	if err != nil && err != io.EOF {
-		log.Errorf("%s\n%s", path, err)
-		return nil, err
-	}
-	return bc, nil
 }

@@ -56,8 +56,8 @@ func (cs CacheStorage) Get(user, repo, branch, phase, stage, article, lang strin
 	return t, ok
 }
 
-// GetSlug -
-func (cs CacheStorage) GetSlug(user, repo, branch, slug, lang string) (Tip, bool) {
+// GetPathFromSlug -
+func (cs CacheStorage) GetPathFromSlug(user, repo, branch, slug string) (string, bool) {
 	key := ""
 	for k := range cs {
 		if strings.HasPrefix(k, fmt.Sprintf("%s/%s/%s", user, repo, branch)) && strings.HasSuffix(k, slug) {
@@ -66,6 +66,15 @@ func (cs CacheStorage) GetSlug(user, repo, branch, slug, lang string) (Tip, bool
 		}
 	}
 	if key == "" {
+		return "", false
+	}
+	return key, true
+}
+
+// GetSlug -
+func (cs CacheStorage) GetSlug(user, repo, branch, slug, lang string) (Tip, bool) {
+	key, ok := cs.GetPathFromSlug(user, repo, branch, slug)
+	if ok == false {
 		return Tip{}, false
 	}
 	c, ok := cs[key]
@@ -73,7 +82,7 @@ func (cs CacheStorage) GetSlug(user, repo, branch, slug, lang string) (Tip, bool
 		return Tip{}, false
 	}
 	t, ok := c[lang]
-	return t, true
+	return t, ok
 }
 
 // List -
